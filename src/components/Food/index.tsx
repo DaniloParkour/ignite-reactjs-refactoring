@@ -4,7 +4,7 @@ import { Container } from './styles';
 import api from '../../services/api';
 import { useState } from 'react';
 
-interface Food {
+export interface FoodModel {
   id: number,
   name: string,
   description: string,
@@ -14,9 +14,9 @@ interface Food {
 }
 
 interface FoodProps {
-  food: Food,
+  food: FoodModel,
   handleDelete: (id: number) => void,
-  handleEditFood: (food: Food) => void
+  handleEditFood: (food: FoodModel) => void
 }
 
 interface FoodState {
@@ -36,12 +36,6 @@ export default function Food(props: FoodProps) {
     });
 
     setState({ isAvailable: !state.isAvailable });
-  }
-
-  const setEditingFood = () => {
-    const { food, handleEditFood } = props;
-
-    handleEditFood(food);
   }
 
   const { handleDelete, handleEditFood } = props;
