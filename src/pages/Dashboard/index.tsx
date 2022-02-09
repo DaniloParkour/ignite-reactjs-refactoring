@@ -1,27 +1,31 @@
 import Header from '../../components/Header';
 import api from '../../services/api';
-import Food from '../../components/Food';
+import Food, { FoodModel } from '../../components/Food';
 import ModalAddFood from '../../components/ModalAddFood';
 import ModalEditFood from '../../components/ModalEditFood';
 import { FoodsContainer } from './styles';
 import { useState } from 'react';
 import { useEffect } from 'react';
 
-export default function Dashboard(props) {
+export default function Dashboard(props: any) {
   const [state, setState] = useState({ //StateData
-    foods: [] as any, //Food
-    editingFood: {} as any, //Food
+    foods: [] as FoodModel[], //Food
+    editingFood: {} as FoodModel, //Food
     modalOpen: false,
     editModalOpen: false,
   });
 
-  useEffect (() => {
-    const response = await api.get('/foods');
-
-    setState({ foods: response.data } as any);
+  useEffect(() => {
+    api.get<FoodModel[]>('/foods').then((resp) => setState({
+      foods: resp.data,
+      editingFood: {} as FoodModel,
+      modalOpen: false,
+      editModalOpen: false
+    })
+    );
   }, []);
 
-  const handleAddFood = async (food : any) => {
+  const handleAddFood = async (food: FoodModel) => {
     const { foods } = state;
 
     try {
@@ -41,7 +45,7 @@ export default function Dashboard(props) {
     }
   }
 
-  const handleUpdateFood = async (food : any) => {
+  const handleUpdateFood = async (food: FoodModel) => {
     const { foods, editingFood } = state;
 
     try {
@@ -50,7 +54,7 @@ export default function Dashboard(props) {
         { ...editingFood, ...food },
       );
 
-      const foodsUpdated = foods.map((f: any) =>
+      const foodsUpdated = foods.map((f: FoodModel) =>
         f.id !== foodUpdated.data.id ? f : foodUpdated.data,
       );
 
@@ -58,7 +62,7 @@ export default function Dashboard(props) {
         foods: foodsUpdated,
         editingFood: state.editingFood,
         modalOpen: state.modalOpen,
-        editModalOpen: state.editModalOpen
+        editModalOpen: false
       });
     } catch (err) {
       console.log(err);
@@ -75,55 +79,70 @@ export default function Dashboard(props) {
     setState({
       foods: foodsFiltered,
       editingFood: state.editingFood,
-        modalOpen: state.modalOpen,
-        editModalOpen: state.editModalOpen
+      modalOpen: state.modalOpen,
+      editModalOpen: state.editModalOpen
     });
   }
 
   const toggleModal = () => {
     const { modalOpen } = state;
 
-    setState({ modalOpen: !modalOpen });
+    setState({
+      foods: state.foods,
+      editingFood: state.editingFood,
+      modalOpen: !modalOpen,
+      editModalOpen: state.editModalOpen
+    });
   }
 
   const toggleEditModal = () => {
     const { editModalOpen } = state;
 
-    setState({ editModalOpen: !editModalOpen });
+    setState({
+      foods: state.foods,
+      editingFood: state.editingFood,
+      editModalOpen: !editModalOpen,
+      modalOpen: state.modalOpen
+    });
   }
 
-  const handleEditFood = (food: any) => {
-    setState({ editingFood: food, editModalOpen: true });
+  const handleEditFood = (food: FoodModel) => {
+    setState({
+      foods: state.foods,
+      editingFood: food,
+      editModalOpen: true,
+      modalOpen: state.modalOpen
+    });
   }
 
   const { modalOpen, editModalOpen, editingFood, foods } = state;
 
-    return (
-      <>
-        <Header openModal={toggleModal} />
-        <ModalAddFood
-          isOpen={modalOpen}
-          setIsOpen={toggleModal}
-          handleAddFood={handleAddFood}
-        />
-        <ModalEditFood
-          isOpen={editModalOpen}
-          setIsOpen={toggleEditModal}
-          editingFood={editingFood}
-          handleUpdateFood={handleUpdateFood}
-        />
+  return (
+    <>
+      <Header openModal={toggleModal} />
+      <ModalAddFood
+        isOpen={modalOpen}
+        setIsOpen={toggleModal}
+        handleAddFood={handleAddFood}
+      />
+      <ModalEditFood
+        isOpen={editModalOpen}
+        setIsOpen={toggleEditModal}
+        editingFood={editingFood}
+        handleUpdateFood={handleUpdateFood}
+      />
 
-        <FoodsContainer data-testid="foods-list">
-          {foods &&
-            foods.map((food: any) => (
-              <Food
-                key={food.id}
-                food={food}
-                handleDelete={handleDeleteFood}
-                handleEditFood={handleEditFood}
-              />
-            ))}
-        </FoodsContainer>
-      </>
-    );
+      <FoodsContainer data-testid="foods-list">
+        {foods &&
+          foods.map((food: any) => (
+            <Food
+              key={food.id}
+              food={food}
+              handleDelete={handleDeleteFood}
+              handleEditFood={handleEditFood}
+            />
+          ))}
+      </FoodsContainer>
+    </>
+  );
 };
